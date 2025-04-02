@@ -47,16 +47,8 @@ int main()
                        -1.73003787e-04, -1.69176312e-04, -1.60767935e-04, -1.48821308e-04,
                        -1.34282160e-04, -1.17997389e-04, -1.00714599e-04, -8.30829935e-05};
 
-    std::vector<float> lo_cos, lo_sin;
-    auto freq = 1024.0;
 
-    for (int i = 0; i < N; ++i)
-    {
-        float phase = -(float)i / (float)N * freq * 2 * PI;
-        lo_cos.push_back(std::cos(phase));
-        lo_sin.push_back(std::sin(phase));
-    }
-    init_ddc_resources(&res, 4096, 8192, 8, 16, lo_cos.data(), lo_sin.data(), fir_coeffs);
+    init_ddc_resources(&res, 4096, 8192, 8, 16, fir_coeffs);
 
     std::mt19937 gen(std::random_device{}());
     std::normal_distribution<float> dist(0.0, 1.0);
@@ -73,10 +65,11 @@ int main()
             float num = dist(gen);
             indata[j] = num*1024;
         }
-        auto err = ddc(indata.data(), (fcomplex*)outdata.data(), &res);
+        auto err = ddc(indata.data(), 1024, &res);
         assert(err >= 0);
         if (err == 1)
         {
+            fetch_output((fcomplex*)outdata.data(), &res);
             if (cnt++ == 10)
             {
                 break;
