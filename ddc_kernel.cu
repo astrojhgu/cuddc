@@ -6,20 +6,20 @@
 
 using namespace std;
 
-constexpr int N = 4096;  // 每次追加的数据长度
-constexpr int M = 8192; // 累积多少块数据后计算
 
 // DDC 处理所需的 GPU 资源
 struct DDCResources
 {
+    int N;  // 每次追加的数据长度
+    int M; // 累积多少块数据后计算
+    int NDEC;
+    int K;
     int16_t *d_indata;
     cuFloatComplex *d_outdata;
     cuFloatComplex *gpu_buffer;
     float *d_lo_cos;
     float *d_lo_sin;
     float *d_fir_coeffs;
-    int NDEC;
-    int K;
     int16_t *h_indata;
     int h_index;
 };
@@ -30,8 +30,9 @@ __device__ cuFloatComplex complex_mult(float a, float b, float c, float d)
     return make_cuFloatComplex(a * c - b * d, a * d + b * c);
 }
 
-__global__ void mix(int16_t *indata, const float *lo_cos,const float *lo_sin, cuFloatComplex *gpu_buffer, int offset, int total_size)
+__global__ void mix(int16_t *indata, const float *lo_cos,const float *lo_sin, cuFloatComplex *gpu_buffer, int offset, int N, int M)
 {
+    int total_size=N*M;
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < total_size)
     {
@@ -58,10 +59,12 @@ __global__ void fir_filter(cuFloatComplex *gpu_buffer, cuFloatComplex *outdata, 
 }
 
 // 初始化 DDC 资源
-extern "C" void init_ddc_resources(DDCResources *res, int NDEC, int K, const float *lo_cos,const float *lo_sin, const float *fir_coeffs)
+extern "C" void init_ddc_resources(DDCResources *res,int N, int M, int NDEC, int K, const float *lo_cos,const float *lo_sin, const float *fir_coeffs)
 {
     res->NDEC = NDEC;
     res->K = K;
+    res->N=N;
+    res->M=M;
     int buffer_size = M * N + NDEC * (K - 1);
     int fir_size = NDEC * K;
 
@@ -105,17 +108,17 @@ extern "C" void free_ddc_resources(DDCResources *res)
 // DDC 处理
 extern "C" int ddc(const int16_t *indata, std::complex<float> *outdata, DDCResources *res)
 {
-    memcpy(res->h_indata + res->h_index, indata, N * sizeof(int16_t));
-    res->h_index += N;
+    memcpy(res->h_indata + res->h_index, indata, res->N * sizeof(int16_t));
+    res->h_index += res->N;
 
-    if (res->h_index == M * N)
+    if (res->h_index == res->M * res->N)
     {
-        int total_size = M * N;
+        int total_size = res->M * res->N;
         //int buffer_size = total_size + res->NDEC * (res->K - 1);
         int offset = res->NDEC * (res->K - 1);
 
         cudaMemcpy(res->d_indata, res->h_indata, total_size * sizeof(int16_t), cudaMemcpyHostToDevice);
-        mix<<<(total_size + 255) / 256, 256>>>(res->d_indata, res->d_lo_cos, res->d_lo_sin, res->gpu_buffer, offset, total_size);
+        mix<<<(total_size + 255) / 256, 256>>>(res->d_indata, res->d_lo_cos, res->d_lo_sin, res->gpu_buffer, offset, res->N, res->M);
         cudaError_t err = cudaGetLastError();
         if (err != cudaSuccess)
             return -1;
@@ -141,6 +144,6 @@ extern "C" int ddc(const int16_t *indata, std::complex<float> *outdata, DDCResou
 }
 
 
-extern "C" size_t calc_output_size(DDCResources* res){
-    return M*N/res->NDEC;
+extern "C" int calc_output_size(DDCResources* res){
+    return (res->M)*(res->N)/(res->NDEC);
 }

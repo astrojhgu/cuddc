@@ -56,7 +56,7 @@ int main()
         lo_cos.push_back(std::cos(phase));
         lo_sin.push_back(std::sin(phase));
     }
-    init_ddc_resources(&res, 8, 16, lo_cos.data(), lo_sin.data(), fir_coeffs);
+    init_ddc_resources(&res, 4096, 8192, 8, 16, lo_cos.data(), lo_sin.data(), fir_coeffs);
 
     std::mt19937 gen(std::random_device{}());
     std::normal_distribution<float> dist(0.0, 1.0);
