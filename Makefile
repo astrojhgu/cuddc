@@ -9,10 +9,13 @@ test_ddc.o: test_ddc.cpp
 ddc_kernel.o: ddc_kernel.cu
 	nvcc -c $< -o $@ $(OPT) --cudart=static --cudadevrt=none
 
+ddc_kernel2.o: ddc_kernel2.cu
+	nvcc -c $< -o $@ $(OPT) --cudart=static --cudadevrt=none
+
 test_ddc: test_ddc.o ddc_kernel.o
 	nvcc $^ -o $@ $(OPT) --cudart=static --cudadevrt=static
 
-libcuddc.a: ddc_kernel.o
+libcuddc.a: ddc_kernel.o ddc_kernel2.o
 	ar crv $@ $^
 	ranlib $@
 

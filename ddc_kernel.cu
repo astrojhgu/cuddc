@@ -5,7 +5,7 @@
 #include <cstdio> // 使用 C++ 风格的头文件
 
 using namespace std;
-constexpr float PI=3.14159265358979323846;
+static constexpr float PI=3.14159265358979323846;
 
 // DDC 处理所需的 GPU 资源
 struct DDCResources
@@ -23,7 +23,7 @@ struct DDCResources
 };
 
 // 复数乘法
-__device__ cuFloatComplex complex_mult(float a, float b, float c, float d)
+__device__ static cuFloatComplex complex_mult(float a, float b, float c, float d)
 {
     return make_cuFloatComplex(a * c - b * d, a * d + b * c);
 }
@@ -140,6 +140,6 @@ extern "C" void fetch_output(std::complex<float> *outdata, DDCResources* res){
 }
 
 
-extern "C" int calc_output_size(DDCResources* res){
+extern "C" int calc_output_size(const DDCResources* res){
     return (res->M)*(res->N)/(res->NDEC);
 }

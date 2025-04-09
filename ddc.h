@@ -21,6 +21,17 @@ struct DDCResources
     int h_index;
 };
 
+struct DDCResources2 // secondary ddc
+{
+    int N; // 每次追加的数据长度
+    int NDEC;
+    int K;
+    struct fcomplex *d_indata;
+    struct fcomplex *d_outdata;
+    struct fcomplex *gpu_buffer;
+    float *d_fir_coeffs;
+};
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -29,7 +40,15 @@ extern "C"
     void free_ddc_resources(struct DDCResources *res);
     int ddc(const int16_t *indata, int lo_ch, struct DDCResources *res);
     void fetch_output(struct fcomplex *outdata, struct DDCResources *res);
-    int calc_output_size(struct DDCResources *res);
+    int calc_output_size(const struct DDCResources *res);
+
+    void init_ddc_resources2(struct DDCResources2 *res, int N, int NDEC, int K, const float *fir_coeffs);
+    void free_ddc_resources2(struct DDCResources2 *res);
+
+    int ddc2(const struct fcomplex *indata, int lo_ch, struct DDCResources2 *res);
+    void fetch_output2(struct fcomplex *outdata, struct DDCResources2 *res);
+    int calc_output_size2(const struct DDCResources2 *res);
+
 #ifdef __cplusplus
 }
 #endif
