@@ -1,3 +1,5 @@
+#ifndef DDC_H_
+#define DDC_H_
 typedef short int int16_t;
 
 struct fcomplex
@@ -15,7 +17,7 @@ struct DDCResources
     int K;
     int16_t *d_indata;
     struct fcomplex *d_outdata;
-    struct fcomplex *gpu_buffer;
+    struct fcomplex *mixed_data;
     float *d_fir_coeffs;
     int16_t *h_indata;
     int h_index;
@@ -28,7 +30,7 @@ struct DDCResources2 // secondary ddc
     int K;
     struct fcomplex *d_indata;
     struct fcomplex *d_outdata;
-    struct fcomplex *gpu_buffer;
+    struct fcomplex *mixed_data;
     float *d_fir_coeffs;
 };
 
@@ -51,4 +53,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
