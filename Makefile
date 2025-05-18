@@ -8,7 +8,7 @@ test_ddc.o: test_ddc.cpp
 	g++ -c $< -o $@ $(CFLAGS)
 
 ddc_kernel.o: ddc_kernel.cu
-	nvcc -c $< -o $@ $(CFLAGS) --cudart=static --cudadevrt=none
+	nvcc --compiler-options -fPIC -c $< -o $@ $(CFLAGS) --cudart=static --cudadevrt=none
 
 test_ddc: test_ddc.o ddc_kernel.o
 	nvcc $^ -o $@ $(CFLAGS) --cudart=static --cudadevrt=none
