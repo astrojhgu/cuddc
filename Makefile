@@ -2,7 +2,7 @@ all: test_ddc libcuddc.a libcuddc.so
 
 OPT=-O3
 CFLAGS = -g $(OPT)
-LIBS=-lcudart -lcuda
+LIBS=-L ./lib -lcudart -lcuda
 
 test_ddc.o: test_ddc.cpp
 	g++ -c $< -o $@ $(CFLAGS)
